@@ -1,0 +1,26 @@
+{
+  "name": "url-shortener",
+  "version": "1.0.0",
+  "description": "A service similar to tiny URL. When provided a URL, this service will send back a URL that sits on this domain, which is hopefully shorter than the original URL.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AllanPooley/fcc-url-shortener.git"
+  },
+  "keywords": [
+    "node",
+    "express",
+    "mongo",
+    "url",
+    "shortener"
+  ],
+  "author": "Allan Pooley",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AllanPooley/fcc-url-shortener/issues"
+  },
+  "homepage": "https://github.com/AllanPooley/fcc-url-shortener#readme"
+}
