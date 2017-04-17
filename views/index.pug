@@ -1,0 +1,26 @@
+html
+    head
+        title The URL Shortener
+        meta(charset="utf-8")
+        meta(http-equiv="X-UA-Compatible", content="IE=edge")
+        meta(name="viewport", content="width=device-width, initial-scale=1")
+        link(rel='stylesheet', href='/style.css')
+        link(href="https://fonts.googleapis.com/css?family=Bowlby+One+SC|Lato", rel="stylesheet", type='text/css')
+
+    div.container
+        h1.heading The URL Shortener
+        div.box
+            h2.heading Description
+            div.text-block
+                p.text A service similar to tiny URL. When provided a URL, this service will send back a URL that sits on this domain, which is hopefully shorter than the original URL.
+                
+            h2.heading Example API Calls
+            div.text-block
+                p.code https://url-shortener.glitch.me/new/https://www.google.com
+            h2.heading Example Response
+            div.text-block
+                p.code { "original_url":"https://www.google.com", "short_url":"https://url-shortener.glitch.me/2" }
+
+    
+    script(src="https://code.jquery.com/jquery-2.2.1.min.js", integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00=", crossorigin="anonymous")
+    script(src='/client.js')
