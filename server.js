@@ -15,8 +15,6 @@ app.use(express.static('public'));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-
-
 var db;
 
 MongoClient.connect(DB_URL, (err, database) => {
@@ -28,6 +26,13 @@ MongoClient.connect(DB_URL, (err, database) => {
   
 });
 
+
+/* TODO */
+// 1. Find, read and redirect to a stored original_url that is queried with a short_url.
+// 2. Validate urls.
+// 3. Fix HTTP responses.
+// 4. Error handling.
+// 5. Fix routing.
 
 
 app.get('/', function(req, res) {
@@ -54,22 +59,50 @@ app.get('/new/:url', function(req, res) {
   });
 });
 
-app.get('/:id', function(req, res) {
+app.get('/get/:id', function(req, res) {
    
   
   // Get the short url id passed by the user on the tail end of the url.
-  var id = req.params.id;
+  var id = parseInt(req.params.id);
   
   // Read record in database that corresponds to passed id.
-  var url = readURL(id);
+  var url = readURL(id, function(foundURL) {
+    // Responds with JSON
+    
+    
+    if (foundURL) {
+      console.log("Attempting redirection to: " + foundURL);
+      res.redirect(301, "http://" + foundURL);
+    } else {
+      console.log("Queried short url not found.")
+      res.send({ error: "This short url does not exist."});
+      res.end();
+    }
+    
+  });
   
   // Redirect to url saved in database
-  res.redirect(url);
+  
   
 });
 
-function readURL(id) {
-  return { "original_url": "test", "short_url": "test" };
+function readURL(id, callback) {
+  
+  console.log("Attempting database query against id: " + id);
+  
+  db.collection(DB_COLLECTION_NAME).findOne({ "short_url_id": id }, function(err, doc) {  
+    if (err) throw err
+    
+    if (doc) {
+      // Document with given id was found in the database
+      callback(doc.original_url);
+    } else {
+      // No Document with that id was found in the database
+      callback(null);
+    }
+  });
+  
+  
 }
 
 
@@ -83,6 +116,7 @@ function saveURL(url, callback) {
     
     var newUrl = {
       "original_url": url,
+      "short_url_id": seq,
       "short_url": DOMAIN + '/' + seq
     };
     
