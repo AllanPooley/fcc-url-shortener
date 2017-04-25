@@ -134,7 +134,7 @@ function saveURL(url, callback) {
     var newUrl = {
       "original_url": url,
       "short_url_id": seq,
-      "short_url": DOMAIN + '/' + seq
+      "short_url": DOMAIN + seq
     };
     
     // Attempting to save the new URL and the short url that has been generated for it.
