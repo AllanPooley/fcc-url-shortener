@@ -44,9 +44,14 @@ app.get('/new/:url', function(req, res) {
   // Get the full url passed by the user that needs to be shortened.
   var url = req.params.url;
   
-  // Responds with JSON
-  res.send(saveURL(url));
-  
+  saveURL(url, function(newDoc) {
+    // Responds with JSON
+    
+    console.log(newDoc);
+    
+    res.send(newDoc);
+    
+  });
 });
 
 app.get('/:id', function(req, res) {
@@ -70,7 +75,7 @@ function readURL(id) {
 
 
 // Saves a new URL to the database returning the new extension on this domain (shortened URL)
-function saveURL(url) {
+function saveURL(url, callback) {
   
   getNextSequence('urlid', function(err, seq) {
     if (err) console.error(err);
@@ -84,7 +89,7 @@ function saveURL(url) {
     db.collection(DB_COLLECTION_NAME).insert(newUrl, function(err, result) {
         if (err) console.error(err);
         
-        return newUrl;
+        callback(newUrl);
     });
     
   });
