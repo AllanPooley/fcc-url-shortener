@@ -7,8 +7,8 @@ var validUrl = require('valid-url');
 var PORT = 8080;
 var DB_NAME = 'fcc-url-shortener';
 var DB_COLLECTION_NAME = 'urls';
-var DB_URL = 'mongodb://quincy:larson@ds163940.mlab.com:63940/' + DB_NAME;
-var DOMAIN = 'https://fcc-url-shortener-allanpooley.c9users.io';
+var DB_URL = 'mongodb://' + process.env.DB_USER + ':' + process.env.DB_PASS + '@ds163940.mlab.com:63940/' + DB_NAME;
+var DOMAIN = 'https://url-decapitator.glitch.me/';
 
 
 app.use(express.static('public'));
