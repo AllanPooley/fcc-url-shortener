@@ -1,12 +1,12 @@
 var express = require('express');
-var path = require('path');
 var app = express();
+var path = require('path');
 var MongoClient = require('mongodb').MongoClient;
-var crypto = require("crypto");
+var validUrl = require('valid-url');
 
 var PORT = 8080;
 var DB_NAME = 'fcc-url-shortener';
-var DB_COLLECTION_NAME = 'urls'
+var DB_COLLECTION_NAME = 'urls';
 var DB_URL = 'mongodb://quincy:larson@ds163940.mlab.com:63940/' + DB_NAME;
 var DOMAIN = 'https://fcc-url-shortener-allanpooley.c9users.io';
 
@@ -17,9 +17,11 @@ app.set('view engine', 'pug');
 
 var db;
 
-MongoClient.connect(DB_URL, (err, database) => {
-  if (err) return console.log(err)
-  db = database
+// Initialising connection to database and starting server.
+MongoClient.connect(DB_URL, function (err, database) {
+  if (err) return console.log(err);
+  
+  db = database;
   app.listen(PORT, function (){
     console.log('Listening on port ' + PORT);
   });
@@ -27,36 +29,49 @@ MongoClient.connect(DB_URL, (err, database) => {
 });
 
 
-/* TODO */
-// 1. Find, read and redirect to a stored original_url that is queried with a short_url.
-// 2. Validate urls.
-// 3. Fix HTTP responses.
-// 4. Error handling.
-// 5. Fix routing.
-
-
+// Routing for the 'home' of the web service, which is a 
 app.get('/', function(req, res) {
-    
-  // Render 'About' style home page.
-  res.render('index');
+  
+  res.render('index'); 
   
 });
 
 
-// *** NOTE: Issues with parsing https://, http:// <-- May need regex
-app.get('/new/:url', function(req, res) {
+
+app.get('/new/*', function(req, res) {
   
   // Get the full url passed by the user that needs to be shortened.
-  var url = req.params.url;
+  const originalUrl = req.params[0];
   
-  saveURL(url, function(newDoc) {
-    // Responds with JSON
+  console.log("Attempting to save: + " + originalUrl);
+  
+  // Check if the url given to the service is a valid HTTP or HTTPS URL
+  if (validUrl.isWebUri(originalUrl)) {
     
-    console.log(newDoc);
+    // URL is valid, attempt to save to database
+    saveURL(originalUrl, function(newDoc) {
+      
+      if (newDoc) {
+        // URL was saved to database
+        console.log("Save successful:");
+        console.log(newDoc);
+        res.send({"original_url": newDoc.original_url, "short_url": newDoc.short_url});
+      } else {
+        // Unable to save URL to database
+        console.log("Save unsuccessful");
+        res.send({ error: "Errors saving to the database."});
+      }
+      
+    });
     
-    res.send(newDoc);
+  } else {
+    // URL was determined to be invalid.
+    console.log("Save unsuccessful: url invalid");
+    res.send({ error: "Could not save invalid URL."});
     
-  });
+  }
+  
+  
 });
 
 app.get('/:id', function(req, res) {
@@ -65,35 +80,37 @@ app.get('/:id', function(req, res) {
   // Get the short url id passed by the user on the tail end of the url.
   var id = parseInt(req.params.id);
   
-  // Read record in database that corresponds to passed id.
-  var url = readURL(id, function(foundURL) {
-    // Responds with JSON
-    
+  // Find the original url that corresponds to the short url.
+  readURL(id, function(foundURL) {
+
     if (foundURL) {
       console.log("Attempting redirection to: " + foundURL);
-      res.redirect(301, "http://" + foundURL);
+      // Sending user to URL that corresponds to given short url id.
+      res.redirect(301, foundURL);
     } else {
-      console.log("Queried short url not found.")
+      console.log("Queried short url not found.");
       res.send({ error: "This short url does not exist."});
-      res.end();
+      
     }
     
   });
   
-  // Redirect to url saved in database
-  
-  
 });
 
+// Retrieves a saved URL when given a corresponding ID (short url).
 function readURL(id, callback) {
   
   console.log("Attempting database query against id: " + id);
   
   db.collection(DB_COLLECTION_NAME).findOne({ "short_url_id": id }, function(err, doc) {  
-    if (err) throw err
+    if (err) {
+      console.error(err);
+      // Error in reading from database
+      callback(null);
+    }
     
     if (doc) {
-      // Document with given id was found in the database
+      // Document was retrieved, return the url corresponding to the short id.
       callback(doc.original_url);
     } else {
       // No Document with that id was found in the database
@@ -101,33 +118,42 @@ function readURL(id, callback) {
     }
   });
   
-  
 }
-
-
 
 // Saves a new URL to the database returning the new extension on this domain (shortened URL)
 function saveURL(url, callback) {
   
+  // getNextSequence() returns the unique ID or short url we need.
+  // So our code to save a URL sits within a callback. This fires only when a
+  // unique ID has been determined, which involves finding and incrementing a 
+  // value in our database.
   getNextSequence('urlid', function(err, seq) {
     if (err) console.error(err);
     
-    
+    // Composing the document to be saved inside of our database.
     var newUrl = {
       "original_url": url,
       "short_url_id": seq,
       "short_url": DOMAIN + '/' + seq
     };
     
+    // Attempting to save the new URL and the short url that has been generated for it.
     db.collection(DB_COLLECTION_NAME).insert(newUrl, function(err, result) {
-        if (err) console.error(err);
+        if (err) {
+          console.error(err);
+          // Error in writing to database
+          callback(null);
+        }
         
+        // Return successfully written document.
         callback(newUrl);
     });
     
   });
 }
 
+// Used to find a primary key stored in a seperate collection, increment it and 
+// return it to be used to save a new URL.
 function getNextSequence(name, callback){
     db.collection("counters").findAndModify(
         { "_id": name },
