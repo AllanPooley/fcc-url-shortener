@@ -4,7 +4,13 @@
   "description": "A service similar to tiny URL. When provided a URL, this service will send back a URL that sits on this domain, which is hopefully shorter than the original URL.",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.15.2"
+  },
+  "engines": {
+    "node": "6.10.x"
   },
   "repository": {
     "type": "git",
@@ -18,7 +24,7 @@
     "shortener"
   ],
   "author": "Allan Pooley",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/AllanPooley/fcc-url-shortener/issues"
   },
@@ -26,7 +32,6 @@
   "dependencies": {
     "express": "^4.15.2",
     "mongodb": "^2.2.26",
-    "mongoose": "^4.9.5",
     "pug": "^2.0.0-beta11",
     "valid-url": "^1.0.9"
   }
