@@ -59,7 +59,7 @@ app.get('/new/:url', function(req, res) {
   });
 });
 
-app.get('/get/:id', function(req, res) {
+app.get('/:id', function(req, res) {
    
   
   // Get the short url id passed by the user on the tail end of the url.
@@ -68,7 +68,6 @@ app.get('/get/:id', function(req, res) {
   // Read record in database that corresponds to passed id.
   var url = readURL(id, function(foundURL) {
     // Responds with JSON
-    
     
     if (foundURL) {
       console.log("Attempting redirection to: " + foundURL);
